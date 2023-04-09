@@ -42,10 +42,10 @@ router.post("/crear-receta", isAuthenticated,async (req, res, next) => {
 });
 
 //todo -----GET ("api/receta/recetaId") => Devuelve las recetas creadas por un user
-router.get("/recetaId", async (req, res, next) => {
-  const { _id } = req.payload;
+router.get("/recetaId", isAuthenticated, async (req, res, next) => {
+  
   try {
-    const response = await Receta.find({ autor: _id });
+    const response = await Receta.find({ autor: req.payload._id });
     res.json(response);
   } catch (error) {
     next(error);
