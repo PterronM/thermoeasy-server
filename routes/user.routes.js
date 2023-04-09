@@ -2,11 +2,11 @@ const express = require("express");
 const User = require("../models/User.model");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-// Require necessary (isAuthenticated) middleware in order to control access to specific routes
-// const { isAuthenticated } = require("../middleware/auth.middleware.js");
+const isAuthenticated = require("../middleware/auth.middleware");
+
 
 //todo -----PATH ("/api/user/:idUser/update") => Recibe y actualiza los datos de un user por su id
-router.patch("/:idUser/update", async (req, res, next) => {
+router.patch("/:idUser/update", isAuthenticated, async (req, res, next) => {
   const { idUser } = req.params;
   const { email, password, passwordVerify, nombre } = req.body;
 
@@ -55,7 +55,7 @@ router.patch("/:idUser/update", async (req, res, next) => {
 });
 
 //todo -----DELETE ("/api/user/:idUser/delete") => Eliminar un usuario
-router.delete("/:idUser/delete", async (req, res, next) => {
+router.delete("/:idUser/delete",isAuthenticated ,async (req, res, next) => {
   const { idUser } = req.params;
   try {
     await User.findByIdAndDelete(idUser);
