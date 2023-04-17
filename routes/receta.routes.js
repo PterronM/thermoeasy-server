@@ -4,11 +4,22 @@ const Receta = require("../models/Receta.model.js");
 const isAuthenticated = require("../middleware/auth.middleware.js");
 const User = require("../models/User.model.js");
 
+//todo -----GET ("/api/receta/allRecetas") => Lista de recetas de BD
+router.get("/", async (req, res, next) => {
+  try {
+    const response = await Receta.find().populate("autor");
+    console.log(response);
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
 //todo ------POST ("api/receta/crear-receta") => Crear una receta
 router.post("/crear-receta", isAuthenticated, async (req, res, next) => {
   const { titulo, ingredientes, preparacion, nPersonas, img } = req.body;
 
-  if (!titulo || !ingredientes || !preparacion || nPersonas || !img) {
+  if (!titulo || !ingredientes || !preparacion || !nPersonas || !img) {
     res
       .status(401)
       .json({ errorMessage: "Todos los campos deben estar rellenos" });
@@ -26,17 +37,6 @@ router.post("/crear-receta", isAuthenticated, async (req, res, next) => {
     });
 
     res.json("Receta creada correctamente");
-  } catch (error) {
-    next(error);
-  }
-});
-
-//todo -----GET ("/api/receta/allRecetas") => Lista de recetas de BD
-router.get("/", async (req, res, next) => {
-  try {
-    const response = await Receta.find().populate("autor", "nombre");
-    console.log(response);
-    res.json(response);
   } catch (error) {
     next(error);
   }

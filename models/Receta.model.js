@@ -17,7 +17,10 @@ const recetaSchema = new Schema(
         type: String,
         require: true
     },
-    nPersonas: Number,
+    nPersonas: {
+      type: Number,
+      require:true
+    },
     autor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

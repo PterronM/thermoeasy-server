@@ -9,7 +9,7 @@ const  isAuthenticated  = require("../middleware/auth.middleware");
 const saltRounds = 10;
 
 //TODO----POST "/api/auth/signup" => Registrar al usuario en la BD
-router.post("/signup", (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
   const { email, password, passwordVerify,nombre } = req.body;
   // const { email, password, nombre } = req.body;
 
@@ -41,35 +41,28 @@ router.post("/signup", (req, res, next) => {
   //   return;
   // }
 
-  // Check the users collection if a user with the same email already exists
-  User.findOne({ email })
-    .then((foundUser) => {
-      // If the user with the same email already exists, send an error response
-      if (foundUser) {
-        res.status(400).json({ message: "El usuario ya existe." });
-        return;
-      }
+  try {
+    const emailFound = await User.findOne({email: email})
+    if(emailFound){
+      return res.status(400).json({errorMessage: "Email registrado"})
+    }
+    const nombreFound = await User.findOne({nombre:nombre})
+    if(nombreFound){
+      return res.status(400).json({errorMessage: "Nombre de usuario registrado"})
+    }
+    const salt = await bcrypt.genSalt(12);
+    const hashPassword = await bcrypt.hash(password,salt)
 
-      // If email is unique, proceed to hash the password
-      const salt = bcrypt.genSaltSync(saltRounds);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      // Create the new user in the database
-      // We return a pending promise, which allows us to chain another `then`
-      return User.create({ email, password: hashedPassword, nombre});
+    await User.create({
+      nombre,
+      email,
+      password: hashPassword
     })
-    .then((createdUser) => {
-      // Deconstruct the newly created user object to omit the password
-      // We should never expose passwords publicly
-      const { email, nombre, _id } = createdUser;
+    res.status(201).json("Usuario registrado correctamente")
 
-      // Create a new object that doesn't expose the password
-      const user = { email, nombre, _id };
-
-      // Send a json response containing the user object
-      res.status(201).json({ user: user });
-    })
-    .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
+  } catch (error) {
+    next(error)
+  }
 });
 
 //TODO----- POST "api/auth/login" => Validar credenciales del usuario
