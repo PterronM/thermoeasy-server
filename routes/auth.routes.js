@@ -15,19 +15,19 @@ router.post("/signup", async (req, res, next) => {
 
   // Check if email or password or nombre are provided as empty strings
   if (email === "" || password === ""|| passwordVerify === "" || nombre === "") {
-    res.status(400).json({ message: "Añade email, contraseña y Usuario" });
+    res.status(400).json({ errorMessage: "Añade email, contraseña y Usuario" });
     return;
   }
 
   if(password !== passwordVerify){
-    res.status(400).json({message: "Las contraseña no coinciden"})
+    res.status(400).json({errorMessage: "Las contraseña no coinciden"})
     return;
   }
 
   // This regular expression check that the email is of a valid format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!emailRegex.test(email)) {
-    res.status(400).json({ message: "Provide a valid email address." });
+    res.status(400).json({ errorMessage: "Provide a valid email address." });
     return;
   }
 
@@ -66,50 +66,45 @@ router.post("/signup", async (req, res, next) => {
 });
 
 //TODO----- POST "api/auth/login" => Validar credenciales del usuario
-router.post("/login", (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
 
   // Check if email or password are provided as empty string
   if (email === "" || password === "") {
-    res.status(400).json({ message: "Añade email y contraseña." });
+    res.status(400).json({ errorMessage: "Añade email y contraseña." });
     return;
   }
+  try {
+    const userFound = await User.findOne({email: email});
+    if(!userFound){
+      return res.status(400).json({errorMessage: "Credenciales incorrectas"});
+    }else{
+      const checkPassword = await bcrypt.compare(password, userFound.password);
 
-  // Check the users collection if a user with the same email exists
-  User.findOne({ email })
-    .then((foundUser) => {
-      if (!foundUser) {
-        // If the user is not found, send an error response
-        res.status(401).json({ errorMessage: "Usuario no registrado." });
-        return;
+      if(!checkPassword){
+        return res.status(400).json({errorMessage: "Credenciales incorrectas"})
       }
+    }
 
-      // Compare the provided password with the one saved in the database
-      const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
+    const payload = {
+      _id: userFound._id,
+      email: userFound.email,
+      nombre: userFound.nombre,
+      profileImage: userFound.imgPerfil
+    };
 
-      if (passwordCorrect) {
-        // Deconstruct the user object to omit the password
-        const { _id, email, nombre } = foundUser;
+    const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
+      algorithm: "HS256",
+      expiresIn: "7d"
+    });
 
-        // Create an object that will be set as the token payload
-        const payload = { 
-          _id, 
-          email, 
-          nombre };
-
-        // Create a JSON Web Token and sign it
-        const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
-          algorithm: "HS256",
-          expiresIn: "7d",
-        });
-
-        // Send the token as the response
-        res.status(200).json({ authToken: authToken });
-      } else {
-        res.status(401).json({ message: "Usuario no autentificado" });
-      }
+    res.status(200).json({
+      authToken
     })
-    .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
+
+  } catch (error) {
+    next(error)
+  }
 });
 
 //TODO---- GET "api/auth/verify" => Verificamos si el usuario esta activo o no
