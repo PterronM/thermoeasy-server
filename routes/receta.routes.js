@@ -74,7 +74,7 @@ router.get("/:idReceta", isAuthenticated, async (req, res, next) => {
   const { idReceta } = req.params;
   try {
     const user = await User.findById(req.payload._id).select("favoritos");
-    const response = await Receta.findById(idReceta).populate();
+    const response = await Receta.findById(idReceta).populate("autor");
     res.status(200).json([response,user]);
   } catch (error) {
     next(error);
