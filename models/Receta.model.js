@@ -25,7 +25,10 @@ const recetaSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    img: String
+    img: {
+      type: Array,
+      require:true
+    }
   },
   {
     // this second object adds extra properties: `createdAt` and `updatedAt`

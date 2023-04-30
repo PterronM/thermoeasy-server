@@ -7,8 +7,8 @@ const User = require("../models/User.model.js");
 //todo -----GET ("/api/receta/allRecetas") => Lista de recetas de BD
 router.get("/", async (req, res, next) => {
   try {
-    const response = await Receta.find().populate("autor");
-    console.log(response);
+    const response = await Receta.find().populate('autor');
+    console.log(response.data);
     res.json(response);
   } catch (error) {
     next(error);
@@ -33,7 +33,7 @@ router.post("/crear-receta", isAuthenticated, async (req, res, next) => {
       preparacion,
       nPersonas,
       autor: req.payload._id,
-      img,
+      img
     });
 
     res.json("Receta creada correctamente");
@@ -42,8 +42,8 @@ router.post("/crear-receta", isAuthenticated, async (req, res, next) => {
   }
 });
 
-//todo -----GET ("api/receta/recetaId") => Devuelve las recetas creadas por un user
-router.get("/recetaId", isAuthenticated, async (req, res, next) => {
+//todo -----GET ("api/receta/recetaUser") => Devuelve las recetas creadas por un user
+router.get("/recetaUser", isAuthenticated, async (req, res, next) => {
   try {
     const response = await Receta.find({ autor: req.payload._id });
     res.json(response);
@@ -54,10 +54,10 @@ router.get("/recetaId", isAuthenticated, async (req, res, next) => {
 
 //todo---- GET("api/receta/favoritos") => Recetas favoritos del usuario
 router.get("/favoritos", isAuthenticated, async (req, res, next) => {
-  // const actUserId  = req.payload._id;
+  const actUserId  = req.payload._id;
 
   try {
-    const response = await User.findById(req.payload._id)
+    const response = await User.findById(actUserId)
       .select("favoritos")
       .populate("favoritos");
     const ordenArr = response.favoritos.sort((a, b) => {
@@ -82,16 +82,19 @@ router.get("/:idReceta", isAuthenticated, async (req, res, next) => {
 });
 
 //todo ------PACH ("api/receta/:idReceta/update")=> Actualiza una receta
-router.patch("/:idReceta/update", isAuthenticated, async (req, res, next) => {
+router.patch("/:idReceta/update", isAuthenticated,async (req, res, next) => {
   const { idReceta } = req.params;
-  const { titulo, ingredientes, preparacion, img } = req.body;
-  if (!titulo || !ingredientes || !preparacion || !img) {
+  const { titulo,ingredientes, preparacion,nPersonas, img } = req.body;
+
+  if (!titulo || !preparacion || !nPersonas|| !ingredientes ) {
     res.status(401).json({ message: "Todos los campos deben estar rellenos" });
     return;
   }
   try {
     const response = await Receta.findByIdAndUpdate(idReceta, {
       titulo,
+      preparacion,
+      nPersonas,
       ingredientes,
       preparacion,
       img,
@@ -103,7 +106,7 @@ router.patch("/:idReceta/update", isAuthenticated, async (req, res, next) => {
 });
 
 //todo ------DELETE("api/receta/:idReceta/delete")=> Elimina una receta de la BD
-router.delete("/:idReceta/delete", async (req, res, next) => {
+router.delete("/:idReceta/delete", isAuthenticated,async (req, res, next) => {
   const { idReceta } = req.params;
   try {
     await Receta.findByIdAndDelete(idReceta);

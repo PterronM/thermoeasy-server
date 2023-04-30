@@ -7,13 +7,12 @@ router.get("/", (req, res, next) => {
 });
 
 
-const authRoutes = require("./auth.routes.js");
-router.use("/auth", authRoutes);
+router.use("/auth", require('./auth.routes.js'));
 
-const userRoutes = require("./user.routes.js");
-router.use("/user",userRoutes)
+router.use("/user", require('./user.routes.js'))
 
-const recetaRoutes = require("./receta.routes.js");
-router.use("/receta", recetaRoutes)
+router.use("/receta", require('./receta.routes.js'))
+
+router.use("/upload", require('./upload.routes.js'))
 
 module.exports = router;

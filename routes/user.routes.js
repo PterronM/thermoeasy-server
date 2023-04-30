@@ -20,7 +20,7 @@ router.get("/:idUser" , async(req,res,next)=>{
 //todo -----PATCH ("/api/user/:idUser/update") => Recibe y actualiza los datos de un user por su id
 router.patch("/:idUser/update", isAuthenticated, async (req, res, next) => {
   const { idUser } = req.params;
-  const { email, password, passwordVerify, nombre, imgPerfil } = req.body;
+  const {nombre, password, passwordVerify,email, imgPerfil } = req.body;
 
 
   if(email === "" || password === "" || passwordVerify===""|| nombre===""){
@@ -61,9 +61,9 @@ router.patch("/:idUser/update", isAuthenticated, async (req, res, next) => {
     }
     
     const response =await User.findByIdAndUpdate(idUser, {
+      nombre,
       email,
       password: hashPassword,
-      nombre,
       imgPerfil
     });
     res.json(response);
